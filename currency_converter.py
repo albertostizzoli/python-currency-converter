@@ -1,87 +1,98 @@
-
 import requests
 import tkinter as tk
 
-history = [] 
+API_KEY = "1ccaeda55dbb420baa90350d"  # chiave API
 
-# creo una funzione per ottenere i tassi di cambio dall'API
+history = []  # lista per lo storico delle conversioni
+
+# creo una funzione per ottenere i tassi di cambio
 def get_exchange_rates(api_key, base_currency, target_currency):
-    url = f"https://v6.exchangerate-api.com/v6/{api_key}/latest/{base_currency}"  # creo l'URL per la richiesta all'API
-    response = requests.get(url) # invio la richiesta GET all'API
-    data = response.json() # converto la risposta in formato JSON
-    if response.status_code == 200: # controllo se la richiesta è andata a buon fine
-        rates = data['conversion_rates'] # estraggo i tassi di cambio dalla risposta
-        return rates[target_currency] # restituisco il tasso di cambio per la valuta di destinazione
+    url = f"https://v6.exchangerate-api.com/v6/{api_key}/latest/{base_currency}"  # URL per ottenere i tassi di cambio
+    response = requests.get(url)  # effettuo la richiesta all'API
+    data = response.json()  # converto la risposta in formato JSON
+    if response.status_code == 200:  # controllo se la richiesta è andata a buon fin
+        rates = data['conversion_rates']  # estraggo i tassi di cambio
+        return rates[target_currency]  # ottengo il tasso di cambio per la valuta di destinazione
     else:
-        raise Exception(f"Errore nell'ottenere i tassi di cambio: {data['error-type']}")
-    
-# creo una funzione per convertire l'importo delle valute
+        raise Exception(f"Errore nell'ottenere i tassi: {data.get('error-type', 'Errore sconosciuto')}")
+
+# creo una funzione per convertire le valute
 def convert_currency(amount, base_currency, target_currency, api_key):
     rate = get_exchange_rates(api_key, base_currency, target_currency) # ottengo il tasso di cambio
-    converted_amount = amount * rate # calcolo l'importo convertito
-    return converted_amount # restituisco l'importo convertito
+    return amount * rate  # calcolo l'importo convertito
 
+# creo una funzione pper ottenere la conversione delle valute
+def on_convert_click():
+    try:
+        amount = float(entry_amount.get())
+        base_currency = entry_from.get().upper()
+        target_currency = entry_to.get().upper()
+        converted = convert_currency(amount, base_currency, target_currency, API_KEY) # converto la valuta
+        result_text = f"{amount} {base_currency} = {converted:.2f} {target_currency}"  # formato il risultato
+        result_label.config(text=result_text) # il risultato viene aggiornato
+        
+        # salvo nella cronologia
+        history.append(result_text)
+        history_list.insert(tk.END, result_text)
+    except Exception as e:
+        result_label.config(text=f"❌ Errore: {e}")
 
-# Funzione per resettare lo storico
+# creo la funzione per resettare lo storico
 def reset_history():
-    history.clear() # pulisco la lista dei risultati
-    history_list.delete(0, tk.END) # pulisco la lista dello storico
+    history.clear() # svuoto la lista dello storico
+    history_list.delete(0, tk.END) # rimuovo tutti gli elementi dalla Listbox
     result_label.config(text="📄 Storico cancellato.")
 
-def main():
-    api_key = "1ccaeda55dbb420baa90350d"
-    print("CONVERTITORE DI VALUTE")
+# ====== INTERFACCIA GRAFICA ======
 
-    while True:
-        try:
-            amount = float(input("Inserisci l'importo da convertire: "))
-            base_currency = input("Inserisci la valuta di partenza (es. EUR): ").upper()
-            target_currency = input("Inserisci la valuta di destinazione (es. USD): ").upper()  
-            converted_amount = convert_currency(amount, base_currency, target_currency, api_key) # converto l'import
-            print(f"{amount} {base_currency} corrispondono a {converted_amount:.2f} {target_currency}") 
-        except Exception as e:  
-            print(f"Errore: {e}")
-
-        another = input("Vuoi convertire un altro importo? (s/n): ").lower()
-        if another != 's':      
-            print("Grazie per aver usato il convertitore di valute!")
-            break
-
-if __name__ == "__main__":
-    main()
-
-# Interfaccia grafica con tkinter
 window = tk.Tk()
-window.title("Simulatore Lancio di Dadi") # Titolo
-window.geometry("630x600") # Dimensioni
-window.config(bg="#3012d8") # Colore sfondo 
+window.title("Convertitore Valute 💱")
+window.geometry("630x600")
+window.config(bg="#f0f8ff")
 
-# Titolo
-title = tk.Label(window, text="CONVERTITORE VALUTE 💰", font=("Helvetica", 18, "bold"), bg="#e71c1c") # stile CSS 
-title.pack(pady=10) # Spaziatura verticale (padding)
+# === Titolo ===
+title = tk.Label(window, text="CONVERTITORE DI VALUTE", font=("Helvetica", 20, "bold"), bg="#4682b4", fg="white")
+title.pack(pady=20)
 
-# Pulsante lancio
-launch_button = tk.Button(window, text=" Ottieni Importo!", font=("Helvetica", 14), bg="#27ae60", fg="white", activebackground="#1e8449")
-launch_button.pack(pady=10)
+# === Input dell'importo ===
+label_amount = tk.Label(window, text="Importo:", font=("Helvetica", 12), bg="#f0f8ff")
+label_amount.pack() # aggiungo il label per l'importo
+entry_amount = tk.Entry(window, font=("Helvetica", 14))
+entry_amount.insert(0, "100")
+entry_amount.pack(pady=5)
 
-# Risultato corrente
-result_label = tk.Label(window, text="", font=("Helvetica", 14), bg="#13eb62")
-result_label.pack(pady=5)
+# === Input per la valuta di partenza ===
+label_from = tk.Label(window, text="Da (es. EUR):", font=("Helvetica", 12), bg="#f0f8ff")
+label_from.pack()
+entry_from = tk.Entry(window, font=("Helvetica", 14))
+entry_from.insert(0, "EUR")
+entry_from.pack(pady=5)
 
-# Sezione storico
-history_label = tk.Label(window, text="🕓 Storico delle conversioni:", font=("Helvetica", 12, "bold"), bg="#f0f0f0")
-history_label.pack()
+# === Input per la valuta di destinazione ===
+label_to = tk.Label(window, text="A (es. USD):", font=("Helvetica", 12), bg="#f0f8ff")
+label_to.pack()
+entry_to = tk.Entry(window, font=("Helvetica", 14))
+entry_to.insert(0, "USD")
+entry_to.pack(pady=5)
+
+# === Pulsante Converti ===
+convert_button = tk.Button(window, text="Converti Ora", font=("Helvetica", 14), bg="#4caf50", fg="white", command=on_convert_click)
+convert_button.pack(pady=10)
+
+# === Risultato ===
+result_label = tk.Label(window, text="", font=("Helvetica", 14, "bold"), bg="#d1ecf1", fg="#0c5460", relief="sunken")
+result_label.pack(pady=10, fill="x", padx=40) # per riempire l'area orizzontalmente
+
+# === Storico ===
+history_label = tk.Label(window, text="🕓 Storico delle conversioni:", font=("Helvetica", 12, "bold"), bg="#f0f8ff")
+history_label.pack(pady=(20, 5)) 
 
 history_list = tk.Listbox(window, width=60, height=6, font=("Courier", 10))
 history_list.pack(pady=5)
 
-# === Separatore visivo ===
-separator = tk.Frame(window, height=2, bd=1, relief="sunken", bg="#fffafa")
-separator.pack(fill="x", padx=20, pady=10)
+# === Pulsante Reset ===
+reset_button = tk.Button(window, text="🗑 Cancella Storico", font=("Helvetica", 10), bg="#e74c3c", fg="white", command=reset_history)
+reset_button.pack(pady=10)
 
-# Pulsante reset
-reset_button = tk.Button(window, text="🗑 Cancella Storico", font=("Helvetica", 10), bg="#e74c3c", fg="white", activebackground="#c0392b", command=reset_history)
-reset_button.pack(pady=5)
-
-# Avvio il lopp principale dell'interfaccia grafica
+# === Avvio finestra ===
 window.mainloop()
