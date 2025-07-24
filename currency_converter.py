@@ -1,5 +1,6 @@
 import requests
 import tkinter as tk
+from tkinter import ttk
 
 API_KEY = "1ccaeda55dbb420baa90350d"  # chiave API
 
@@ -15,6 +16,24 @@ def get_exchange_rates(api_key, base_currency, target_currency):
         return rates[target_currency]  # ottengo il tasso di cambio per la valuta di destinazione
     else:
         raise Exception(f"Errore nell'ottenere i tassi: {data.get('error-type', 'Errore sconosciuto')}")
+    
+# === Funzione per ottenere le valute disponibili ===
+def get_currency_list():
+    try:
+        url = f"https://v6.exchangerate-api.com/v6/{API_KEY}/codes"
+        response = requests.get(url)
+        data = response.json()
+        if response.status_code == 200 and data.get("result") == "success":
+            # Formatta come "EUR - Euro", "USD - United States Dollar", ecc.
+            codes = [f"{code} - {name}" for code, name in data["supported_codes"]]
+            return sorted(codes)
+        else:
+            print("Errore API:", data)
+            return ["EUR - Euro", "USD - United States Dollar"]
+    except Exception as e:
+        print("Errore nel recupero delle valute:", e)
+        return ["EUR - Euro", "USD - United States Dollar"]
+
 
 # creo una funzione per convertire le valute
 def convert_currency(amount, base_currency, target_currency, api_key):
@@ -25,8 +44,8 @@ def convert_currency(amount, base_currency, target_currency, api_key):
 def on_convert_click():
     try:
         amount = float(entry_amount.get())
-        base_currency = entry_from.get().upper()
-        target_currency = entry_to.get().upper()
+        base_currency = selected_from.get().split(" - ")[0] # valita di partenza
+        target_currency = selected_to.get().split(" - ")[0] # valuta di destinazione
         converted = convert_currency(amount, base_currency, target_currency, API_KEY) # converto la valuta
         result_text = f"{amount} {base_currency} = {converted:.2f} {target_currency}"  # formato il risultato
         result_label.config(text=result_text) # il risultato viene aggiornato
@@ -61,19 +80,22 @@ entry_amount = tk.Entry(window, font=("Helvetica", 14))
 entry_amount.insert(0, "100")
 entry_amount.pack(pady=5)
 
-# === Input per la valuta di partenza ===
-label_from = tk.Label(window, text="Da (es. EUR):", font=("Helvetica", 12), bg="#f0f8ff")
-label_from.pack()
-entry_from = tk.Entry(window, font=("Helvetica", 14))
-entry_from.insert(0, "EUR")
-entry_from.pack(pady=5)
+# === ottengo le valute dall'API ===
+currency_list = get_currency_list()
 
-# === Input per la valuta di destinazione ===
-label_to = tk.Label(window, text="A (es. USD):", font=("Helvetica", 12), bg="#f0f8ff")
+# === Selettore per la valuta di partenza ===
+label_from = tk.Label(window, text="Da:", font=("Helvetica", 12), bg="#f0f8ff")
+label_from.pack()
+selected_from = tk.StringVar(value="EUR")
+dropdown_from = ttk.Combobox(window, textvariable=selected_from, values=currency_list, state="readonly", font=("Helvetica", 12))
+dropdown_from.pack(pady=5)
+
+# === Selettore per la valuta di destinazione ===
+label_to = tk.Label(window, text="A:", font=("Helvetica", 12), bg="#f0f8ff")
 label_to.pack()
-entry_to = tk.Entry(window, font=("Helvetica", 14))
-entry_to.insert(0, "USD")
-entry_to.pack(pady=5)
+selected_to = tk.StringVar(value="USD")
+dropdown_to = ttk.Combobox(window, textvariable=selected_to, values=currency_list, state="readonly", font=("Helvetica", 12))
+dropdown_to.pack(pady=5)
 
 # === Pulsante Converti ===
 convert_button = tk.Button(window, text="Converti Ora", font=("Helvetica", 14), bg="#4caf50", fg="white", command=on_convert_click)
