@@ -17,14 +17,14 @@ def get_exchange_rates(api_key, base_currency, target_currency):
     else:
         raise Exception(f"Errore nell'ottenere i tassi: {data.get('error-type', 'Errore sconosciuto')}")
     
-# === Funzione per ottenere le valute disponibili ===
+# creo una funzione per ottenere le valute disponibili
 def get_currency_list():
     try:
         url = f"https://v6.exchangerate-api.com/v6/{API_KEY}/codes"
         response = requests.get(url)
         data = response.json()
         if response.status_code == 200 and data.get("result") == "success":
-            # Formatta come "EUR - Euro", "USD - United States Dollar", ecc.
+            # formatta come "EUR - Euro", "USD - United States Dollar"
             codes = [f"{code} - {name}" for code, name in data["supported_codes"]]
             return sorted(codes)
         else:
