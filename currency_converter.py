@@ -11,7 +11,7 @@ def get_exchange_rates(api_key, base_currency, target_currency):
     url = f"https://v6.exchangerate-api.com/v6/{api_key}/latest/{base_currency}"  # URL per ottenere i tassi di cambio
     response = requests.get(url)  # effettuo la richiesta all'API
     data = response.json()  # converto la risposta in formato JSON
-    if response.status_code == 200:  # controllo se la richiesta è andata a buon fin
+    if response.status_code == 200:  # controllo se la richiesta è andata a buon fine
         rates = data['conversion_rates']  # estraggo i tassi di cambio
         return rates[target_currency]  # ottengo il tasso di cambio per la valuta di destinazione
     else:
@@ -66,7 +66,7 @@ def reset_history():
 
 window = tk.Tk()
 window.title("Convertitore Valute 💱")
-window.geometry("630x600")
+window.geometry("630x660")
 window.config(bg="#f0f8ff")
 
 # === Titolo ===
@@ -76,7 +76,7 @@ title.pack(pady=20)
 # === Input dell'importo ===
 label_amount = tk.Label(window, text="Importo:", font=("Helvetica", 12), bg="#f0f8ff")
 label_amount.pack() # aggiungo il label per l'importo
-entry_amount = tk.Entry(window, font=("Helvetica", 14))
+entry_amount = tk.Entry(window, font=("Helvetica", 14), width=20)
 entry_amount.insert(0, "100")
 entry_amount.pack(pady=5)
 
@@ -87,14 +87,14 @@ currency_list = get_currency_list()
 label_from = tk.Label(window, text="Da:", font=("Helvetica", 12), bg="#f0f8ff")
 label_from.pack()
 selected_from = tk.StringVar(value="EUR")
-dropdown_from = ttk.Combobox(window, textvariable=selected_from, values=currency_list, state="readonly", font=("Helvetica", 12))
+dropdown_from = ttk.Combobox(window, textvariable=selected_from, values=currency_list, state="readonly", font=("Helvetica", 12), width=30)
 dropdown_from.pack(pady=5)
 
 # === Selettore per la valuta di destinazione ===
 label_to = tk.Label(window, text="A:", font=("Helvetica", 12), bg="#f0f8ff")
 label_to.pack()
 selected_to = tk.StringVar(value="USD")
-dropdown_to = ttk.Combobox(window, textvariable=selected_to, values=currency_list, state="readonly", font=("Helvetica", 12))
+dropdown_to = ttk.Combobox(window, textvariable=selected_to, values=currency_list, state="readonly", font=("Helvetica", 12), width=30)
 dropdown_to.pack(pady=5)
 
 # === Pulsante Converti ===
